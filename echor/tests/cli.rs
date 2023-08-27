@@ -2,7 +2,7 @@ use assert_cmd::Command;
 use predicates::prelude::*;
 use std::fs;
 
-type TestResult = Result <(), Box<dyn std::error::Error>>; //Ok part of TestResult will only ever hold the unit type and Err part can hold anything that implemenets the std::error:Error trait
+type TestResult = Result<(), Box<dyn std::error::Error>>; //Ok part of TestResult will only ever hold the unit type and Err part can hold anything that implemenets the std::error:Error trait
 
 #[test]
 fn dies_no_args() -> TestResult {
@@ -21,7 +21,7 @@ fn run(args: &[&str], expected_file: &str) -> TestResult {
         .assert()
         .success()
         .stdout(expected);
-    
+
     Ok(())
 }
 
