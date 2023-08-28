@@ -51,9 +51,16 @@ pub fn get_args() -> MyResult<Config> {
 // function will accept a Config struct and return Ok with the unit type of successful
 pub fn run(config: Config) -> MyResult<()> {
     for filename in config.files {
+        // try to open the filename, borrowing the variable
         match open(&filename) {
             Err(err) => eprintln!("Failed to open {}: {}", filename, err),
-            Ok(file) => {}
+            Ok(file_handle) => {
+                for line_result in file_handle.lines() {
+                    // unpack an Ok value from line_result or propagate an error
+                    let line = line_result?;
+                    println!("{}", line);
+                }
+            }
         }
     }
     Ok(())
