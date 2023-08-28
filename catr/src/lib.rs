@@ -1,6 +1,7 @@
 use clap::{App, Arg};
 use std::error::Error;
-
+use std::fs::File;
+use std::io::{self, BufRead, BufReader};
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
 #[derive(Debug)] //derive macro adds the debug trait so the struct can be printed.
@@ -27,19 +28,21 @@ pub fn get_args() -> MyResult<Config> {
                 .short("n")
                 .long("number")
                 .help("Number lines")
-                .takes_value(false),
+                .takes_value(false)
+                .conflicts_with("number_nonblank"),
         )
         .arg(
             Arg::with_name("number_nonblank")
                 .short("b")
                 .long("number-nonblank")
-                .help(" Number non-blank lines")
+                .help("Number non-blank lines")
                 .takes_value(false),
         )
         .get_matches();
 
     Ok(Config {
         files: matches.values_of_lossy("files").unwrap(),
+        // the two boolean options are present or not
         number_lines: matches.is_present("number"),
         number_nonblank_lines: matches.is_present("number_nonblank"),
     })
@@ -47,6 +50,21 @@ pub fn get_args() -> MyResult<Config> {
 
 // function will accept a Config struct and return Ok with the unit type of successful
 pub fn run(config: Config) -> MyResult<()> {
-    dbg!(config); //use the debug macro to print the configuration
+    for filename in config.files {
+        match open(&filename) {
+            Err(err) => eprintln!("Failed to open {}: {}", filename, err),
+            Ok(file) => {}
+        }
+    }
     Ok(())
+}
+
+//function will accept a filename and will return either an error or a boxed value that
+// implements the Bufread trait
+fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
+    match filename {
+        "-" => Ok(Box::new(BufReader::new(io::stdin()))),
+        //using a Box to create a pointer to heap allocated memory to hold the filehandle
+        _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
+    }
 }
